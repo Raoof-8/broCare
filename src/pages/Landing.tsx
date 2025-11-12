@@ -2,28 +2,32 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ShieldCheck, MessageSquare, BarChart3, Bell } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const Landing = () => {
+  const { t } = useLanguage();
+  
   const features = [
     {
       icon: ShieldCheck,
-      title: "Secure & Anonymous",
-      description: "Your privacy is protected with optional anonymous submissions"
+      title: t('secureAnonymous'),
+      description: t('secureAnonymousDesc')
     },
     {
       icon: MessageSquare,
-      title: "Track Progress",
-      description: "Real-time updates on your complaint resolution status"
+      title: t('trackProgress'),
+      description: t('trackProgressDesc')
     },
     {
       icon: BarChart3,
-      title: "Transparent System",
-      description: "Complete visibility into the complaint handling process"
+      title: t('transparentSystem'),
+      description: t('transparentSystemDesc')
     },
     {
       icon: Bell,
-      title: "Instant Notifications",
-      description: "Get notified immediately when your complaint is updated"
+      title: t('instantNotifications'),
+      description: t('instantNotificationsDesc')
     }
   ];
 
@@ -31,6 +35,9 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-4 right-4">
+          <LanguageSelector />
+        </div>
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -40,24 +47,24 @@ const Landing = () => {
           >
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6">
               <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
-                BroCare
+                {t('appTitle')}
               </span>
             </h1>
             <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Student Complaint & Grievance Management System for Brototype
+              {t('appTagline')}
             </p>
             <p className="text-lg text-foreground/80 mb-12 max-w-2xl mx-auto">
-              A safe, accessible, and transparent platform for raising issues and tracking resolutions
+              {t('appDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Get Started
+                  {t('getStarted')}
                 </Button>
               </Link>
               <Link to="/dashboard">
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-                  View Dashboard
+                  {t('viewDashboard')}
                 </Button>
               </Link>
             </div>
@@ -75,10 +82,7 @@ const Landing = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4">Why Choose BroCare?</h2>
-            <p className="text-xl text-muted-foreground">
-              Built with student welfare and transparency in mind
-            </p>
+            <h2 className="text-4xl font-bold mb-4">{t('features')}</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -109,13 +113,13 @@ const Landing = () => {
           viewport={{ once: true }}
           className="max-w-4xl mx-auto bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-12 text-center"
         >
-          <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
+          <h2 className="text-4xl font-bold mb-4">{t('readyToStart')}</h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join hundreds of students using BroCare to resolve their issues
+            {t('readyToStartDesc')}
           </p>
           <Link to="/auth">
             <Button size="lg" className="text-lg px-8 py-6">
-              Submit Your First Complaint
+              {t('submitComplaint')}
             </Button>
           </Link>
         </motion.div>

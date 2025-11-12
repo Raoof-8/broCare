@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const Auth = () => {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,6 +47,9 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,11 +58,9 @@ const Auth = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{isLogin ? "Welcome Back" : "Create Account"}</CardTitle>
+            <CardTitle className="text-2xl">{isLogin ? t('signIn') : t('signUp')}</CardTitle>
             <CardDescription>
-              {isLogin
-                ? "Sign in to access your BroCare dashboard"
-                : "Register to submit complaints and track resolutions"}
+              {isLogin ? t('appTagline') : t('appDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -64,22 +68,20 @@ const Auth = () => {
               {!isLogin && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="fullName">{t('fullName')}</Label>
                     <Input
                       id="fullName"
                       type="text"
-                      placeholder="Enter your full name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required={!isLogin}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="studentId">Student ID</Label>
+                    <Label htmlFor="studentId">{t('studentId')}</Label>
                     <Input
                       id="studentId"
                       type="text"
-                      placeholder="Enter your student ID"
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
                       required={!isLogin}
@@ -88,29 +90,27 @@ const Auth = () => {
                 </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+                {loading ? t('loading') : isLogin ? t('signIn') : t('signUp')}
               </Button>
             </form>
             <div className="mt-4 text-center">
@@ -119,9 +119,7 @@ const Auth = () => {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-sm"
               >
-                {isLogin
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
+                {isLogin ? t('dontHaveAccount') : t('alreadyHaveAccount')}
               </Button>
             </div>
           </CardContent>

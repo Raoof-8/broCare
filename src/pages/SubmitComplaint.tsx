@@ -12,8 +12,11 @@ import { Upload, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const SubmitComplaint = () => {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -89,6 +92,9 @@ const SubmitComplaint = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -96,26 +102,25 @@ const SubmitComplaint = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">Submit a Complaint</h1>
+            <h1 className="text-4xl font-bold mb-2">{t('submitNewComplaint')}</h1>
             <p className="text-muted-foreground">
-              Fill out the form below to submit your complaint. All fields are required unless marked optional.
+              {t('description')}
             </p>
           </div>
 
           <Card className="border-border">
             <CardHeader>
-              <CardTitle>Complaint Details</CardTitle>
+              <CardTitle>{t('submitComplaint')}</CardTitle>
               <CardDescription>
-                Please provide as much detail as possible to help us resolve your issue
+                {t('description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Complaint Title *</Label>
+                  <Label htmlFor="title">{t('complaintTitle')}</Label>
                   <Input
                     id="title"
-                    placeholder="Brief summary of your complaint"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -125,15 +130,15 @@ const SubmitComplaint = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category">{t('category')}</Label>
                     <Select value={category} onValueChange={setCategory} required>
                       <SelectTrigger className="bg-muted border-border">
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder={t('category')} />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
                           <SelectItem key={cat} value={cat}>
-                            {cat}
+                            {t(cat.toLowerCase())}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -141,15 +146,15 @@ const SubmitComplaint = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="priority">Priority *</Label>
+                    <Label htmlFor="priority">{t('priority')}</Label>
                     <Select value={priority} onValueChange={setPriority} required>
                       <SelectTrigger className="bg-muted border-border">
-                        <SelectValue placeholder="Select priority" />
+                        <SelectValue placeholder={t('priority')} />
                       </SelectTrigger>
                       <SelectContent>
                         {priorities.map((p) => (
                           <SelectItem key={p} value={p}>
-                            {p}
+                            {t(p.toLowerCase())}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -158,7 +163,7 @@ const SubmitComplaint = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">{t('description')}</Label>
                   <Textarea
                     id="description"
                     placeholder="Describe your complaint in detail..."
@@ -188,10 +193,10 @@ const SubmitComplaint = () => {
                     <AlertCircle className="w-5 h-5 text-primary" />
                     <div>
                       <Label htmlFor="anonymous" className="cursor-pointer">
-                        Submit Anonymously
+                        {t('submitAnonymously')}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        Your identity will be hidden from staff
+                        {t('submitAnonymouslyDesc')}
                       </p>
                     </div>
                   </div>
@@ -210,10 +215,10 @@ const SubmitComplaint = () => {
                     className="flex-1"
                     disabled={loading}
                   >
-                    Cancel
+                    {t('cancel')}
                   </Button>
                   <Button type="submit" className="flex-1" disabled={loading}>
-                    {loading ? "Submitting..." : "Submit Complaint"}
+                    {loading ? t('submitting') : t('submit')}
                   </Button>
                 </div>
               </form>

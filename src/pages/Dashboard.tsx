@@ -8,6 +8,8 @@ import { AlertCircle, Clock, CheckCircle, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface Complaint {
   id: string;
@@ -19,6 +21,7 @@ interface Complaint {
 }
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
@@ -69,19 +72,19 @@ const Dashboard = () => {
 
   const stats = [
     {
-      label: "Total Complaints",
+      label: t('totalComplaints'),
       value: complaints.length,
       icon: AlertCircle,
       color: "text-primary"
     },
     {
-      label: "In Progress",
+      label: t('inProgress'),
       value: complaints.filter(c => c.status === 'In Progress' || c.status === 'In Review').length,
       icon: Clock,
       color: "text-yellow-500"
     },
     {
-      label: "Resolved",
+      label: t('resolved'),
       value: complaints.filter(c => c.status === 'Resolved' || c.status === 'Closed').length,
       icon: CheckCircle,
       color: "text-secondary"
@@ -113,7 +116,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your complaints...</p>
+          <p className="text-muted-foreground">{t('loading')}</p>
         </div>
       </div>
     );
@@ -129,26 +132,27 @@ const Dashboard = () => {
         >
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-              <p className="text-muted-foreground">Track and manage your complaints</p>
+              <h1 className="text-4xl font-bold mb-2">{t('dashboard')}</h1>
+              <p className="text-muted-foreground">{t('myComplaints')}</p>
             </div>
             <div className="flex gap-3">
+              <LanguageSelector />
               {isStaffOrAdmin && (
                 <Link to="/admin">
                   <Button variant="secondary" className="gap-2">
                     <Shield className="w-4 h-4" />
-                    Admin Panel
+                    {t('adminPanel')}
                   </Button>
                 </Link>
               )}
               <Button onClick={handleSignOut} variant="outline" className="gap-2">
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {t('signOut')}
               </Button>
               <Link to="/submit">
                 <Button className="gap-2">
                   <AlertCircle className="w-4 h-4" />
-                  New Complaint
+                  {t('newComplaint')}
                 </Button>
               </Link>
             </div>
@@ -182,18 +186,18 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <h2 className="text-2xl font-bold mb-4">Your Complaints</h2>
+            <h2 className="text-2xl font-bold mb-4">{t('myComplaints')}</h2>
             
             {complaints.length === 0 ? (
               <Card className="border-border">
                 <CardContent className="py-12 text-center">
                   <AlertCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">No complaints yet</h3>
+                  <h3 className="text-xl font-semibold mb-2">{t('noComplaints')}</h3>
                   <p className="text-muted-foreground mb-6">
-                    You haven't submitted any complaints. Click the button below to get started.
+                    {t('noComplaintsDesc')}
                   </p>
                   <Link to="/submit">
-                    <Button>Submit Your First Complaint</Button>
+                    <Button>{t('submitComplaint')}</Button>
                   </Link>
                 </CardContent>
               </Card>
