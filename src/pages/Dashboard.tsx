@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
-import { AlertCircle, Clock, CheckCircle, LogOut } from "lucide-react";
+import { AlertCircle, Clock, CheckCircle, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ interface Complaint {
 const Dashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,8 +29,22 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchComplaints();
+      checkIfStaffOrAdmin();
     }
   }, [user]);
+
+  const checkIfStaffOrAdmin = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", ["admin", "staff", "hod", "grc"])
+      .maybeSingle();
+    
+    setIsStaffOrAdmin(!!data);
+  };
 
   const fetchComplaints = async () => {
     try {
@@ -118,6 +133,14 @@ const Dashboard = () => {
               <p className="text-muted-foreground">Track and manage your complaints</p>
             </div>
             <div className="flex gap-3">
+              {isStaffOrAdmin && (
+                <Link to="/admin">
+                  <Button variant="secondary" className="gap-2">
+                    <Shield className="w-4 h-4" />
+                    Admin Panel
+                  </Button>
+                </Link>
+              )}
               <Button onClick={handleSignOut} variant="outline" className="gap-2">
                 <LogOut className="w-4 h-4" />
                 Sign Out
