@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface Complaint {
   id: string;
@@ -136,6 +137,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground">{t('myComplaints')}</p>
             </div>
             <div className="flex gap-3">
+              <NotificationBell />
               <LanguageSelector />
               {isStaffOrAdmin && (
                 <Link to="/admin">
