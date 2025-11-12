@@ -14,16 +14,330 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      complaint_evidence: {
+        Row: {
+          complaint_id: string
+          file_type: Database["public"]["Enums"]["file_type"]
+          file_url: string
+          id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          complaint_id: string
+          file_type: Database["public"]["Enums"]["file_type"]
+          file_url: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          complaint_id?: string
+          file_type?: Database["public"]["Enums"]["file_type"]
+          file_url?: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_evidence_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaint_messages: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          id: string
+          is_staff: boolean | null
+          message: string
+          user_id: string
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          is_staff?: boolean | null
+          message: string
+          user_id: string
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          is_staff?: boolean | null
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_messages_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaint_status_history: {
+        Row: {
+          changed_by: string | null
+          complaint_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["complaint_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status: Database["public"]["Enums"]["complaint_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_status_history_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaints: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at: string | null
+          description: string
+          escalated_at: string | null
+          id: string
+          incident_date: string | null
+          is_anonymous: boolean | null
+          location: string | null
+          priority: Database["public"]["Enums"]["complaint_priority"] | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["complaint_status"] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string | null
+          description: string
+          escalated_at?: string | null
+          id?: string
+          incident_date?: string | null
+          is_anonymous?: boolean | null
+          location?: string | null
+          priority?: Database["public"]["Enums"]["complaint_priority"] | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string | null
+          description?: string
+          escalated_at?: string | null
+          id?: string
+          incident_date?: string | null
+          is_anonymous?: boolean | null
+          location?: string | null
+          priority?: Database["public"]["Enums"]["complaint_priority"] | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_ratings: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          feedback_text: string | null
+          id: string
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_ratings_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          language_preference:
+            | Database["public"]["Enums"]["language_preference"]
+            | null
+          phone: string | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          language_preference?:
+            | Database["public"]["Enums"]["language_preference"]
+            | null
+          phone?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          language_preference?:
+            | Database["public"]["Enums"]["language_preference"]
+            | null
+          phone?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      suggestions: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string
+          id: string
+          is_anonymous: boolean | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          is_anonymous?: boolean | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_anonymous?: boolean | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff_or_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "staff" | "hod" | "admin" | "grc"
+      complaint_category:
+        | "Academic"
+        | "Hostel"
+        | "Canteen"
+        | "Harassment"
+        | "Infrastructure"
+        | "Other"
+      complaint_priority: "Low" | "Medium" | "High" | "Critical"
+      complaint_status:
+        | "Submitted"
+        | "In Review"
+        | "In Progress"
+        | "Resolved"
+        | "Closed"
+      file_type: "image" | "document" | "audio" | "video"
+      language_preference: "en" | "ml"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +464,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "staff", "hod", "admin", "grc"],
+      complaint_category: [
+        "Academic",
+        "Hostel",
+        "Canteen",
+        "Harassment",
+        "Infrastructure",
+        "Other",
+      ],
+      complaint_priority: ["Low", "Medium", "High", "Critical"],
+      complaint_status: [
+        "Submitted",
+        "In Review",
+        "In Progress",
+        "Resolved",
+        "Closed",
+      ],
+      file_type: ["image", "document", "audio", "video"],
+      language_preference: ["en", "ml"],
+    },
   },
 } as const
