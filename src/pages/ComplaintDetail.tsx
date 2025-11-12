@@ -6,48 +6,208 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Clock, CheckCircle, AlertCircle, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+
+interface Complaint {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  created_at: string;
+}
+
+interface Message {
+  id: string;
+  user_id: string;
+  message: string;
+  is_staff: boolean;
+  created_at: string;
+}
+
+interface StatusHistory {
+  id: string;
+  status: string;
+  created_at: string;
+}
 
 const ComplaintDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [message, setMessage] = useState("");
+  const [complaint, setComplaint] = useState<Complaint | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [statusHistory, setStatusHistory] = useState<StatusHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
-  // Mock data for MVP
-  const complaint = {
-    id,
-    title: "Hostel Wi-Fi Connection Issue",
-    category: "Hostel",
-    status: "In Progress",
-    date: "2024-01-15",
-    priority: "High",
-    description: "The Wi-Fi connection in my hostel room has been extremely unstable for the past week. It keeps disconnecting every few minutes, making it impossible to attend online classes or complete assignments. This is severely affecting my academic performance.",
-    timeline: [
-      { status: "Submitted", date: "2024-01-15 10:30 AM", completed: true },
-      { status: "Under Review", date: "2024-01-15 02:45 PM", completed: true },
-      { status: "In Progress", date: "2024-01-16 09:00 AM", completed: true },
-      { status: "Resolved", date: "Pending", completed: false }
-    ],
-    messages: [
-      {
-        sender: "Staff",
-        message: "Thank you for reporting this issue. Our technical team has been notified and will investigate the problem.",
-        date: "2024-01-15 03:00 PM"
-      },
-      {
-        sender: "You",
-        message: "Thank you for the quick response. When can I expect this to be fixed?",
-        date: "2024-01-15 04:30 PM"
-      }
-    ]
+  useEffect(() => {
+    if (id && user) {
+      fetchComplaintDetails();
+      fetchMessages();
+      fetchStatusHistory();
+      
+      // Subscribe to real-time messages
+      const channel = supabase
+        .channel(`complaint-${id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'complaint_messages',
+            filter: `complaint_id=eq.${id}`
+          },
+          (payload) => {
+            setMessages(prev => [...prev, payload.new as Message]);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [id, user]);
+
+  const fetchComplaintDetails = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setComplaint(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getStatusIcon = (completed: boolean) => {
-    if (completed) {
+  const fetchMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('complaint_messages')
+        .select('*')
+        .eq('complaint_id', id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error: any) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const fetchStatusHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('complaint_status_history')
+        .select('*')
+        .eq('complaint_id', id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setStatusHistory(data || []);
+    } catch (error: any) {
+      console.error('Error fetching status history:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !user) return;
+
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase
+        .from('complaint_messages')
+        .insert([
+          {
+            complaint_id: id,
+            user_id: user.id,
+            message: message.trim(),
+            is_staff: false
+          }
+        ]);
+
+      if (error) throw error;
+
+      setMessage("");
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    const currentStatusIndex = ['Submitted', 'In Review', 'In Progress', 'Resolved'].indexOf(complaint?.status || '');
+    const itemStatusIndex = ['Submitted', 'In Review', 'In Progress', 'Resolved'].indexOf(status);
+    
+    if (itemStatusIndex <= currentStatusIndex) {
       return <CheckCircle className="w-6 h-6 text-secondary" />;
     }
     return <Clock className="w-6 h-6 text-muted-foreground" />;
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Submitted":
+        return "bg-primary/20 text-primary border-primary/50";
+      case "In Review":
+      case "In Progress":
+        return "bg-yellow-500/20 text-yellow-500 border-yellow-500/50";
+      case "Resolved":
+      case "Closed":
+        return "bg-secondary/20 text-secondary border-secondary/50";
+      default:
+        return "bg-muted/20 text-muted-foreground border-muted/50";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading complaint details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!complaint) {
+    return null;
+  }
+
+  const timeline = [
+    { status: "Submitted", date: new Date(complaint.created_at).toLocaleString() },
+    { status: "In Review", date: statusHistory.find(h => h.status === 'In Review')?.created_at || 'Pending' },
+    { status: "In Progress", date: statusHistory.find(h => h.status === 'In Progress')?.created_at || 'Pending' },
+    { status: "Resolved", date: statusHistory.find(h => h.status === 'Resolved')?.created_at || 'Pending' }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,13 +235,11 @@ const ComplaintDetail = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-2xl mb-2">{complaint.title}</CardTitle>
-                      <CardDescription>Submitted on {complaint.date}</CardDescription>
+                      <CardDescription>
+                        Submitted on {new Date(complaint.created_at).toLocaleDateString()}
+                      </CardDescription>
                     </div>
-                    <Badge className={
-                      complaint.status === "Submitted" ? "bg-primary/20 text-primary border-primary/50" :
-                      complaint.status === "In Progress" ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/50" :
-                      "bg-secondary/20 text-secondary border-secondary/50"
-                    }>
+                    <Badge className={getStatusColor(complaint.status)}>
                       {complaint.status}
                     </Badge>
                   </div>
@@ -114,14 +272,18 @@ const ComplaintDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {complaint.timeline.map((item, index) => (
+                    {timeline.map((item, index) => (
                       <div key={index} className="flex gap-4">
-                        {getStatusIcon(item.completed)}
+                        {getStatusIcon(item.status)}
                         <div className="flex-1">
-                          <h4 className={`font-semibold ${item.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <h4 className={`font-semibold ${
+                            item.date !== 'Pending' ? 'text-foreground' : 'text-muted-foreground'
+                          }`}>
                             {item.status}
                           </h4>
-                          <p className="text-sm text-muted-foreground">{item.date}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.date !== 'Pending' ? new Date(item.date).toLocaleString() : item.date}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -142,10 +304,6 @@ const ComplaintDetail = () => {
                     <AlertCircle className="w-4 h-4" />
                     Escalate Complaint
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2" disabled>
-                    <CheckCircle className="w-4 h-4" />
-                    Mark as Resolved
-                  </Button>
                 </CardContent>
               </Card>
 
@@ -160,15 +318,25 @@ const ComplaintDetail = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {complaint.messages.map((msg, index) => (
-                      <div key={index} className={`p-3 rounded-lg ${
-                        msg.sender === "You" ? "bg-primary/10" : "bg-muted"
-                      }`}>
-                        <p className="text-sm font-semibold mb-1">{msg.sender}</p>
-                        <p className="text-sm text-muted-foreground mb-1">{msg.message}</p>
-                        <p className="text-xs text-muted-foreground">{msg.date}</p>
-                      </div>
-                    ))}
+                    {messages.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No messages yet. Start the conversation!
+                      </p>
+                    ) : (
+                      messages.map((msg) => (
+                        <div key={msg.id} className={`p-3 rounded-lg ${
+                          msg.user_id === user?.id ? "bg-primary/10" : "bg-muted"
+                        }`}>
+                          <p className="text-sm font-semibold mb-1">
+                            {msg.is_staff ? "Staff" : "You"}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-1">{msg.message}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(msg.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
                   </div>
                   <Separator />
                   <div className="space-y-2">
@@ -179,7 +347,13 @@ const ComplaintDetail = () => {
                       rows={3}
                       className="bg-muted border-border resize-none"
                     />
-                    <Button className="w-full">Send Message</Button>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleSendMessage}
+                      disabled={sendingMessage || !message.trim()}
+                    >
+                      {sendingMessage ? "Sending..." : "Send Message"}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

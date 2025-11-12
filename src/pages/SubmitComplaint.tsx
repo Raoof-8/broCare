@@ -10,27 +10,69 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SubmitComplaint = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [priority, setPriority] = useState("");
+  const [priority, setPriority] = useState("Medium");
   const [anonymous, setAnonymous] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    toast({
-      title: "Complaint Submitted",
-      description: "Your complaint has been successfully submitted and will be reviewed shortly.",
-    });
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to submit a complaint",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
     
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1500);
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .insert([
+          {
+            user_id: user.id,
+            title,
+            description,
+            category: category as any,
+            priority: priority as any,
+            is_anonymous: anonymous,
+            status: 'Submitted'
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      toast({
+        title: "Complaint Submitted",
+        description: "Your complaint has been successfully submitted and will be reviewed shortly.",
+      });
+      
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const categories = [
@@ -43,7 +85,7 @@ const SubmitComplaint = () => {
     "Other"
   ];
 
-  const priorities = ["Low", "Medium", "High", "Urgent"];
+  const priorities = ["Low", "Medium", "High", "Critical"];
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -166,11 +208,12 @@ const SubmitComplaint = () => {
                     variant="outline"
                     onClick={() => navigate("/dashboard")}
                     className="flex-1"
+                    disabled={loading}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="flex-1">
-                    Submit Complaint
+                  <Button type="submit" className="flex-1" disabled={loading}>
+                    {loading ? "Submitting..." : "Submit Complaint"}
                   </Button>
                 </div>
               </form>

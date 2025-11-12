@@ -50,7 +50,7 @@ const Landing = () => {
               A safe, accessible, and transparent platform for raising issues and tracking resolutions
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/login">
+              <Link to="/auth">
                 <Button size="lg" className="text-lg px-8 py-6">
                   Get Started
                 </Button>
@@ -113,7 +113,7 @@ const Landing = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Join hundreds of students using BroCare to resolve their issues
           </p>
-          <Link to="/login">
+          <Link to="/auth">
             <Button size="lg" className="text-lg px-8 py-6">
               Submit Your First Complaint
             </Button>
