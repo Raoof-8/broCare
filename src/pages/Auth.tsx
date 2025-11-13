@@ -8,9 +8,22 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100, "Password too long"),
+});
+
+const signUpSchema = signInSchema.extend({
+  studentId: z.string().min(3, "Student ID must be at least 3 characters").max(50, "Student ID too long"),
+  fullName: z.string().min(2, "Full name must be at least 2 characters").max(100, "Full name too long"),
+});
 
 const Auth = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,19 +43,74 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
-      const { error } = await signIn(email, password);
-      if (!error) {
-        navigate("/dashboard");
-      }
-    } else {
-      const { error } = await signUp(email, password, studentId, fullName);
-      if (!error) {
-        navigate("/dashboard");
-      }
-    }
+    try {
+      if (isLogin) {
+        // Validate login inputs
+        const validationResult = signInSchema.safeParse({ email, password });
+        
+        if (!validationResult.success) {
+          toast({
+            title: "Validation Error",
+            description: validationResult.error.errors[0].message,
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
 
-    setLoading(false);
+        const { error } = await signIn(validationResult.data.email, validationResult.data.password);
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else {
+          navigate("/dashboard");
+        }
+      } else {
+        // Validate signup inputs
+        const validationResult = signUpSchema.safeParse({ email, password, studentId, fullName });
+        
+        if (!validationResult.success) {
+          toast({
+            title: "Validation Error",
+            description: validationResult.error.errors[0].message,
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signUp(
+          validationResult.data.email,
+          validationResult.data.password,
+          validationResult.data.studentId,
+          validationResult.data.fullName
+        );
+        if (error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Account created successfully!",
+          });
+          navigate("/dashboard");
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

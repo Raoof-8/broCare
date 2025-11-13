@@ -14,6 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { z } from "zod";
+
+const complaintSchema = z.object({
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
+  category: z.enum(["Academic", "Hostel", "Canteen", "Infrastructure", "Harassment", "Administration", "Other"]),
+  priority: z.enum(["Low", "Medium", "High", "Critical"]),
+});
 
 const SubmitComplaint = () => {
   const { t } = useLanguage();
@@ -39,6 +47,23 @@ const SubmitComplaint = () => {
       return;
     }
 
+    // Validate inputs
+    const validationResult = complaintSchema.safeParse({
+      title,
+      description,
+      category,
+      priority,
+    });
+
+    if (!validationResult.success) {
+      toast({
+        title: "Validation Error",
+        description: validationResult.error.errors[0].message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -47,10 +72,10 @@ const SubmitComplaint = () => {
         .insert([
           {
             user_id: user.id,
-            title,
-            description,
-            category: category as any,
-            priority: priority as any,
+            title: validationResult.data.title,
+            description: validationResult.data.description,
+            category: validationResult.data.category as any,
+            priority: validationResult.data.priority as any,
             is_anonymous: anonymous,
             status: 'Submitted'
           }

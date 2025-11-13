@@ -10,6 +10,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const messageSchema = z.object({
+  message: z.string().trim().min(1, "Message cannot be empty").max(2000, "Message must be less than 2000 characters"),
+});
 
 interface Complaint {
   id: string;
@@ -129,7 +134,19 @@ const ComplaintDetail = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !user) return;
+    if (!user) return;
+
+    // Validate message
+    const validationResult = messageSchema.safeParse({ message });
+    
+    if (!validationResult.success) {
+      toast({
+        title: "Validation Error",
+        description: validationResult.error.errors[0].message,
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSendingMessage(true);
     try {
@@ -139,7 +156,7 @@ const ComplaintDetail = () => {
           {
             complaint_id: id,
             user_id: user.id,
-            message: message.trim(),
+            message: validationResult.data.message,
             is_staff: false
           }
         ]);

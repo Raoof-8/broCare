@@ -9,6 +9,32 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// HTML escape function to prevent XSS
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Input validation
+function validateInput(userId: string, complaintId: string, title: string, message: string) {
+  if (!userId || typeof userId !== 'string' || userId.length > 100) {
+    throw new Error('Invalid userId');
+  }
+  if (!complaintId || typeof complaintId !== 'string' || complaintId.length > 100) {
+    throw new Error('Invalid complaintId');
+  }
+  if (!title || typeof title !== 'string' || title.length > 500) {
+    throw new Error('Invalid title');
+  }
+  if (!message || typeof message !== 'string' || message.length > 2000) {
+    throw new Error('Invalid message');
+  }
+}
+
 interface NotificationRequest {
   userId: string;
   complaintId: string;
@@ -24,12 +50,56 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify JWT token from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
     );
 
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { userId, complaintId, type, title, message, email }: NotificationRequest = await req.json();
+    
+    // Validate all inputs
+    validateInput(userId, complaintId, title, message);
+
+    // Verify user has permission to send notifications for this complaint
+    const { data: complaint } = await supabaseClient
+      .from('complaints')
+      .select('user_id')
+      .eq('id', complaintId)
+      .single();
+
+    const { data: userRole } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'staff', 'hod', 'grc'])
+      .maybeSingle();
+
+    const isAuthorized = userRole || (complaint && complaint.user_id === user.id);
+    if (!isAuthorized) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: insufficient permissions' }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     console.log("Sending notification:", { userId, complaintId, type, title });
 
@@ -45,16 +115,21 @@ const handler = async (req: Request): Promise<Response> => {
       userEmail = profile?.email;
     }
 
-    // Send email notification
+    // Validate email
+    if (userEmail && (typeof userEmail !== 'string' || !userEmail.includes('@') || userEmail.length > 255)) {
+      throw new Error('Invalid email address');
+    }
+
+    // Send email notification with sanitized content
     if (userEmail) {
       const emailResponse = await resend.emails.send({
         from: "BroCare <onboarding@resend.dev>",
         to: [userEmail],
-        subject: title,
+        subject: escapeHtml(title),
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #dc2626;">${title}</h2>
-            <p style="color: #374151; font-size: 16px;">${message}</p>
+            <h2 style="color: #dc2626;">${escapeHtml(title)}</h2>
+            <p style="color: #374151; font-size: 16px;">${escapeHtml(message)}</p>
             <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
               Log in to BroCare to view your complaint details and track its progress.
             </p>
