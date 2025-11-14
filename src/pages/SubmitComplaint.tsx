@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import Navigation from "@/components/Navigation";
 import { z } from "zod";
 
 const complaintSchema = z.object({
@@ -117,10 +117,8 @@ const SubmitComplaint = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="absolute top-4 right-4">
-        <LanguageSelector />
-      </div>
-      <div className="max-w-3xl mx-auto">
+      <Navigation />
+      <div className="max-w-3xl mx-auto mt-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

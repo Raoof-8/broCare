@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 import { z } from "zod";
 
 const messageSchema = z.object({
@@ -228,7 +229,8 @@ const ComplaintDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Navigation />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

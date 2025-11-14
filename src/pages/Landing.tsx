@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ShieldCheck, MessageSquare, BarChart3, Bell } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import Navigation from "@/components/Navigation";
 
 const Landing = () => {
   const { t } = useLanguage();
@@ -33,11 +33,9 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-4 right-4">
-          <LanguageSelector />
-        </div>
+      <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8 mt-16">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

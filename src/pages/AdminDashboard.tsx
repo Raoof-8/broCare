@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, BarChart3, Users, AlertCircle } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 interface Complaint {
   id: string;
@@ -155,20 +156,9 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
-            <p className="text-sm text-muted-foreground">Manage complaints and users</p>
-          </div>
-          <Button onClick={handleSignOut} variant="outline" size="sm">
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
+      <Navigation />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 mt-16">
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
