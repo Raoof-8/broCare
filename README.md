@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2dc1e472-61f4-446e-99b2-566b169395bc) and start prompting.
+Simply visit the [Lovable Project](https://brocare-report-complaints.lovable.app) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
