@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, studentId: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithPhone: (phone: string, password: string) => Promise<{ error: any }>;
+  signUpWithPhone: (phone: string, password: string, studentId: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -106,6 +108,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithPhone = async (phone: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        phone,
+        password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      return { error };
+    }
+  };
+
+  const signUpWithPhone = async (phone: string, password: string, studentId: string, fullName: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        phone,
+        password,
+        options: {
+          data: {
+            student_id: studentId,
+            full_name: fullName,
+          }
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { error };
+      }
+
+      toast({
+        title: "Account created successfully!",
+        description: "You can now submit complaints and track their resolution.",
+      });
+      
+      return { error: null };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     toast({
@@ -114,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithPhone, signUpWithPhone, signOut }}>
       {children}
     </AuthContext.Provider>
   );
