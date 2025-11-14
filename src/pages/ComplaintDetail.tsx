@@ -134,6 +134,36 @@ const ComplaintDetail = () => {
     }
   };
 
+  const handleEscalate = async () => {
+    if (!user || !complaint) return;
+
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({
+          status: 'Escalated',
+          escalated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Complaint escalated",
+        description: "Your complaint has been escalated to higher authorities",
+      });
+
+      // Refresh complaint details
+      fetchComplaintDetails();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!user) return;
 
@@ -319,9 +349,14 @@ const ComplaintDetail = () => {
                   <CardTitle>Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={handleEscalate}
+                    disabled={complaint.status === 'Escalated' || complaint.status === 'Resolved' || complaint.status === 'Closed'}
+                  >
                     <AlertCircle className="w-4 h-4" />
-                    Escalate Complaint
+                    {complaint.status === 'Escalated' ? 'Already Escalated' : 'Escalate Complaint'}
                   </Button>
                 </CardContent>
               </Card>
