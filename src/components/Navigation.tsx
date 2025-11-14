@@ -11,11 +11,31 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./NotificationBell";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["admin", "staff", "hod", "grc"])
+        .single();
+
+      setIsStaffOrAdmin(!!data);
+    };
+
+    checkUserRole();
+  }, [user]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -71,23 +91,27 @@ const Navigation = () => {
                       Dashboard
                     </Button>
                     
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => navigate("/submit")}
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Submit Complaint
-                    </Button>
+                    {!isStaffOrAdmin && (
+                      <Button
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={() => navigate("/submit")}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Submit Complaint
+                      </Button>
+                    )}
                     
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => navigate("/admin")}
-                    >
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin
-                    </Button>
+                    {isStaffOrAdmin && (
+                      <Button
+                        variant="ghost"
+                        className="justify-start"
+                        onClick={() => navigate("/admin")}
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </Button>
+                    )}
                     
                     <Button
                       variant="ghost"
