@@ -21,6 +21,7 @@ const complaintSchema = z.object({
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
   category: z.enum(["Academic", "Hostel", "Canteen", "Infrastructure", "Harassment", "Administration", "Other"]),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
+  department: z.enum(["HOD", "Mentor", "Hostel Warden", "Exam Cell", "Admin Office", "Placement Team", "Library", "Transport", "IT Support", "General"]),
 });
 
 const SubmitComplaint = () => {
@@ -29,6 +30,7 @@ const SubmitComplaint = () => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const [department, setDepartment] = useState("");
   const [anonymous, setAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -53,6 +55,7 @@ const SubmitComplaint = () => {
       description,
       category,
       priority,
+      department,
     });
 
     if (!validationResult.success) {
@@ -67,6 +70,25 @@ const SubmitComplaint = () => {
     setLoading(true);
     
     try {
+      // Find staff member with matching department/role
+      let assignedStaffId = null;
+      
+      const { data: staffMembers } = await supabase
+        .from('user_roles')
+        .select('user_id, role, department')
+        .in('role', ['staff', 'hod', 'admin', 'grc'])
+        .limit(10);
+
+      // Try to match by department first, then assign to any available staff
+      if (staffMembers && staffMembers.length > 0) {
+        const matchedStaff = staffMembers.find(s => 
+          s.department?.toLowerCase().includes(validationResult.data.department.toLowerCase()) ||
+          validationResult.data.department.toLowerCase().includes(s.department?.toLowerCase() || '')
+        );
+        
+        assignedStaffId = matchedStaff?.user_id || staffMembers[0].user_id;
+      }
+
       const { data, error } = await supabase
         .from('complaints')
         .insert([
@@ -76,6 +98,8 @@ const SubmitComplaint = () => {
             description: validationResult.data.description,
             category: validationResult.data.category as any,
             priority: validationResult.data.priority as any,
+            department: validationResult.data.department as any,
+            assigned_to: assignedStaffId,
             is_anonymous: anonymous,
             status: 'Submitted'
           }
@@ -114,6 +138,19 @@ const SubmitComplaint = () => {
   ];
 
   const priorities = ["Low", "Medium", "High", "Critical"];
+
+  const departments = [
+    "HOD",
+    "Mentor",
+    "Hostel Warden",
+    "Exam Cell",
+    "Admin Office",
+    "Placement Team",
+    "Library",
+    "Transport",
+    "IT Support",
+    "General"
+  ];
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -183,6 +220,25 @@ const SubmitComplaint = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="department">Direct To (Department/Staff)</Label>
+                  <Select value={department} onValueChange={setDepartment} required>
+                    <SelectTrigger className="bg-muted border-border">
+                      <SelectValue placeholder="Select department or staff member" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the department or staff member who should handle this complaint
+                  </p>
                 </div>
 
                 <div className="space-y-2">
