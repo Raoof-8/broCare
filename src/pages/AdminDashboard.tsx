@@ -54,7 +54,7 @@ const AdminDashboard = () => {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .in("role", ["admin", "staff", "hod", "grc"])
+      .in("role", ["admin", "staff", "hod", "grc", "warden", "mentor", "support"])
       .single();
 
     if (error || !data) {
@@ -159,6 +159,13 @@ const AdminDashboard = () => {
       <Navigation />
 
       <main className="container mx-auto px-4 py-8 mt-16">
+        <div className="mb-6 flex justify-end">
+          <Button onClick={() => navigate("/admin/users")} className="gap-2">
+            <Users className="w-4 h-4" />
+            Manage Users & Roles
+          </Button>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
