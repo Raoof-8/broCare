@@ -121,6 +121,7 @@ export type Database = {
           assigned_to: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at: string | null
+          department: Database["public"]["Enums"]["complaint_department"] | null
           description: string
           escalated_at: string | null
           id: string
@@ -138,6 +139,9 @@ export type Database = {
           assigned_to?: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at?: string | null
+          department?:
+            | Database["public"]["Enums"]["complaint_department"]
+            | null
           description: string
           escalated_at?: string | null
           id?: string
@@ -155,6 +159,9 @@ export type Database = {
           assigned_to?: string | null
           category?: Database["public"]["Enums"]["complaint_category"]
           created_at?: string | null
+          department?:
+            | Database["public"]["Enums"]["complaint_department"]
+            | null
           description?: string
           escalated_at?: string | null
           id?: string
@@ -362,7 +369,15 @@ export type Database = {
       is_staff_or_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "student" | "staff" | "hod" | "admin" | "grc"
+      app_role:
+        | "student"
+        | "staff"
+        | "hod"
+        | "admin"
+        | "grc"
+        | "warden"
+        | "mentor"
+        | "support"
       complaint_category:
         | "Academic"
         | "Hostel"
@@ -370,6 +385,17 @@ export type Database = {
         | "Harassment"
         | "Infrastructure"
         | "Other"
+      complaint_department:
+        | "HOD"
+        | "Mentor"
+        | "Hostel Warden"
+        | "Exam Cell"
+        | "Admin Office"
+        | "Placement Team"
+        | "Library"
+        | "Transport"
+        | "IT Support"
+        | "General"
       complaint_priority: "Low" | "Medium" | "High" | "Critical"
       complaint_status:
         | "Submitted"
@@ -377,6 +403,7 @@ export type Database = {
         | "In Progress"
         | "Resolved"
         | "Closed"
+        | "Escalated"
       file_type: "image" | "document" | "audio" | "video"
       language_preference: "en" | "ml"
     }
@@ -506,7 +533,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "staff", "hod", "admin", "grc"],
+      app_role: [
+        "student",
+        "staff",
+        "hod",
+        "admin",
+        "grc",
+        "warden",
+        "mentor",
+        "support",
+      ],
       complaint_category: [
         "Academic",
         "Hostel",
@@ -515,6 +551,18 @@ export const Constants = {
         "Infrastructure",
         "Other",
       ],
+      complaint_department: [
+        "HOD",
+        "Mentor",
+        "Hostel Warden",
+        "Exam Cell",
+        "Admin Office",
+        "Placement Team",
+        "Library",
+        "Transport",
+        "IT Support",
+        "General",
+      ],
       complaint_priority: ["Low", "Medium", "High", "Critical"],
       complaint_status: [
         "Submitted",
@@ -522,6 +570,7 @@ export const Constants = {
         "In Progress",
         "Resolved",
         "Closed",
+        "Escalated",
       ],
       file_type: ["image", "document", "audio", "video"],
       language_preference: ["en", "ml"],
